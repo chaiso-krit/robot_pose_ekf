@@ -103,6 +103,8 @@ private:
   /// get the status of the filter
   bool getStatus(robot_pose_ekf::GetStatus::Request& req, robot_pose_ekf::GetStatus::Response& resp);
 
+  void force_2d(tf::Transform& meas_, MatrixWrapper::SymmetricMatrix& cov_);
+
   ros::NodeHandle node_;
   ros::Timer timer_;
   ros::Publisher pose_pub_;
@@ -129,6 +131,7 @@ private:
   ros::Time odom_init_stamp_, imu_init_stamp_, vo_init_stamp_, gps_init_stamp_;
   bool odom_active_, imu_active_, vo_active_, gps_active_;
   bool odom_used_, imu_used_, vo_used_, gps_used_;
+  bool force_2d_;
   bool odom_initializing_, imu_initializing_, vo_initializing_, gps_initializing_;
   double timeout_;
   MatrixWrapper::SymmetricMatrix odom_covariance_, imu_covariance_, vo_covariance_, gps_covariance_;

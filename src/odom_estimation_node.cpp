@@ -81,6 +81,7 @@ namespace estimation
     nh_private.param("imu_used",  imu_used_, true);
     nh_private.param("vo_used",   vo_used_, true);
     nh_private.param("gps_used",   gps_used_, false);
+    nh_private.param("force_2d",   force_2d_, true);
     nh_private.param("debug",   debug_, false);
     nh_private.param("self_diagnose",  self_diagnose_, false);
     double freq;
@@ -187,6 +188,8 @@ namespace estimation
       for (unsigned int j=0; j<6; j++)
         odom_covariance_(i+1, j+1) = odom->pose.covariance[6*i+j];
 
+    if(force_2d_) force_2d(odom_meas_, odom_covariance_);
+
     my_filter_.addMeasurement(StampedTransform(odom_meas_.inverse(), odom_stamp_, base_footprint_frame_, "wheelodom"), odom_covariance_);
     
     // activate odom
@@ -213,8 +216,14 @@ namespace estimation
     }
   };
 
+  void OdomEstimationNode::force_2d(tf::Transform& meas_, MatrixWrapper::SymmetricMatrix& cov_)
+  {
+    meas_.getOrigin().setZ(0.0);
+    double tmp, yaw;
+    meas_.getBasis().getEulerYPR(yaw, tmp, tmp);
+    meas_.setRotation(tf::createQuaternionFromYaw(yaw));
 
-
+  }
 
   // callback function for imu data
   void OdomEstimationNode::imuCallback(const ImuConstPtr& imu)
@@ -301,6 +310,9 @@ namespace estimation
     for (unsigned int i=0; i<6; i++)
       for (unsigned int j=0; j<6; j++)
         vo_covariance_(i+1, j+1) = vo->pose.covariance[6*i+j];
+
+    if(force_2d_) force_2d(vo_meas_, vo_covariance_);
+
     my_filter_.addMeasurement(StampedTransform(vo_meas_.inverse(), vo_stamp_, base_footprint_frame_, "vo"), vo_covariance_);
     
     // activate vo
